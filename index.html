@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Тест: страны на карте Европы</title>
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --correct: #16a34a;
+    --correct-bg: #dcfce7;
+    --wrong: #dc2626;
+    --wrong-bg: #fee2e2;
+    --border: #e5e7eb;
+    --btn-bg: #eef2f7;
+    --btn-border: #d7dee7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14161a; --card: #1f232a; --text: #f1f3f5; --muted: #9ca3af;
+      --accent: #60a5fa; --accent-dark: #3b82f6;
+      --correct: #4ade80; --correct-bg: #14361f;
+      --wrong: #f87171; --wrong-bg: #3a1414;
+      --border: #333844;
+      --btn-bg: #262b33; --btn-border: #3a4150;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161a; --card: #1f232a; --text: #f1f3f5; --muted: #9ca3af;
+    --accent: #60a5fa; --accent-dark: #3b82f6;
+    --correct: #4ade80; --correct-bg: #14361f;
+    --wrong: #f87171; --wrong-bg: #3a1414;
+    --border: #333844;
+    --btn-bg: #262b33; --btn-border: #3a4150;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh; display: flex; align-items: flex-start; justify-content: center;
+    padding: 16px 10px 40px; padding-top: max(16px, env(safe-area-inset-top, 0px));
+    padding-bottom: max(40px, env(safe-area-inset-bottom, 0px));
+    touch-action: manipulation;
+  }
+  .wrap { width: 100%; max-width: 480px; }
+  h1 { font-size: 1.2rem; margin: 0 0 4px; text-align: center; }
+  .subtitle { color: var(--muted); text-align: center; margin: 0 0 14px; font-size: 0.85rem; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .progress-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px; font-size: 0.82rem; color: var(--muted);
+  }
+  .progress-bar { height: 6px; background: var(--border); border-radius: 999px; overflow: hidden; margin-bottom: 12px; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width 0.3s ease; }
+  .question { font-size: 1.05rem; font-weight: 600; margin: 0 0 10px; text-align: center; line-height: 1.35; }
+  .question b { color: var(--accent); }
+
+  .map-box {
+    width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--border);
+    position: relative; background: #cfe3f0; touch-action: none;
+  }
+  svg.map-svg { display: block; width: 100%; height: auto; cursor: crosshair; }
+  svg.map-svg.locked { cursor: default; }
+  .map-img { width: 626px; height: 461px; }
+
+  .pin-anim {
+    animation: pin-drop 0.35s cubic-bezier(.34,1.56,.64,1) both;
+    transform-origin: 0px 0px;
+  }
+  @keyframes pin-drop {
+    0%   { transform: translateY(-16px) scale(0.4); opacity: 0; }
+    70%  { transform: translateY(1px) scale(1.08); opacity: 1; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  .pin-shadow { fill: rgba(0,0,0,0.25); }
+  .pin-shape {
+    stroke: #ffffff; stroke-width: 1.6;
+    filter: drop-shadow(0 1.5px 1.5px rgba(0,0,0,0.35));
+  }
+  .pin-guess .pin-shape { fill: var(--wrong); }
+  .pin-correct .pin-shape { fill: var(--correct); }
+  .pin-dot { fill: #ffffff; }
+  .guess-line { stroke: var(--muted); stroke-width: 1.6; stroke-dasharray: 4 3; opacity: 0.85; }
+
+  .hint { text-align: center; color: var(--muted); font-size: 0.8rem; margin-top: 10px; }
+  .attribution { text-align: center; color: var(--muted); font-size: 0.68rem; margin-top: 4px; }
+
+  .skip-btn {
+    display: block; margin: 10px auto 0; padding: 8px 16px;
+    border-radius: 999px; border: 1.5px solid var(--btn-border); background: var(--btn-bg);
+    color: var(--muted); font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  }
+  .skip-btn:active { filter: brightness(0.96); }
+  .skip-btn:disabled { opacity: 0.4; }
+
+  .feedback {
+    margin-top: 12px; padding: 10px 12px; border-radius: 10px;
+    font-size: 0.92rem; font-weight: 600; text-align: center; display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct { background: var(--correct-bg); color: var(--correct); }
+  .feedback.wrong { background: var(--wrong-bg); color: var(--wrong); }
+  .feedback .sub { display: block; font-weight: 500; font-size: 0.82rem; margin-top: 2px; opacity: 0.9; }
+
+  .next-btn {
+    margin-top: 14px; width: 100%; padding: 13px; border: none; border-radius: 10px;
+    background: var(--accent); color: white; font-size: 1rem; font-weight: 600;
+    cursor: pointer; display: none;
+  }
+  .next-btn.show { display: block; }
+  .next-btn:active { background: var(--accent-dark); }
+
+  .result-card { text-align: center; }
+  .result-score { font-size: 2.4rem; font-weight: 700; margin: 6px 0; color: var(--accent); }
+  .result-label { color: var(--muted); margin-bottom: 14px; }
+  .result-comment { font-size: 1rem; margin-bottom: 18px; }
+  .restart-btn {
+    width: 100%; padding: 13px; border: none; border-radius: 10px;
+    background: var(--accent); color: white; font-size: 1rem; font-weight: 600; cursor: pointer;
+  }
+  .restart-btn:active { background: var(--accent-dark); }
+  .review { text-align: left; margin-top: 18px; border-top: 1px solid var(--border); padding-top: 12px; }
+  .review-item {
+    display: flex; justify-content: space-between; gap: 10px; padding: 7px 0;
+    font-size: 0.85rem; border-bottom: 1px solid var(--border);
+  }
+  .review-item:last-child { border-bottom: none; }
+  .review-country { color: var(--muted); }
+  .review-answer.correct-text { color: var(--correct); font-weight: 600; }
+  .review-answer.wrong-text { color: var(--wrong); font-weight: 600; }
+</style>
+<link rel="icon" href="data:,"><style>body{flex-direction:column;align-items:center;justify-content:flex-start}body>nav{width:100%;margin-bottom:12px}nav a{color:var(--accent);text-decoration:none;padding:9px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px}.wrap{max-width:600px}</style></head>
+<body><nav style="display:flex;justify-content:center;gap:20px;flex-wrap:wrap;padding:14px;font:14px system-ui"><a href="index.html">Страны на карте</a><a href="capitals.html">Столицы Европы</a><a href="https://shalombaby666.github.io/#project=geo">К портфолио</a></nav>
+<div class="wrap">
+  <h1>🗺️ Страны на карте Европы</h1>
+  <p class="subtitle">Тапни по карте в нужном месте — 10 вопросов</p>
+  <div class="card" id="app">Загрузка карты…</div>
+</div>
+
+<script>
+// Подписи (точки для булавок) — порядок ВАЖЕН: индекс+1 соответствует
+// значению R-канала в невидимой PNG-маске областей (mask_b64), по которой
+// и определяется, в какую страну попал клик. Сама маска нарисована так,
+// чтобы покрывать реальную видимую территорию страны на этой карте, а не
+// быть просто кружком вокруг точки — поэтому клик проверяется по ней, а не
+// по формуле расстояния.
+const COUNTRIES = [{"name": "Россия", "x": 527, "y": 205}, {"name": "Турция", "x": 469, "y": 418}, {"name": "Украина", "x": 440, "y": 325}, {"name": "Франция", "x": 215, "y": 350}, {"name": "Испания", "x": 168, "y": 407}, {"name": "Швеция", "x": 328, "y": 153}, {"name": "Норвегия", "x": 309, "y": 119}, {"name": "Германия", "x": 276, "y": 302}, {"name": "Финляндия", "x": 401, "y": 129}, {"name": "Польша", "x": 347, "y": 293}, {"name": "Италия", "x": 290, "y": 386}, {"name": "Великобритания", "x": 172, "y": 268}, {"name": "Румыния", "x": 390, "y": 357}, {"name": "Греция", "x": 377, "y": 421}, {"name": "Беларусь", "x": 415, "y": 278}, {"name": "Болгария", "x": 392, "y": 386}, {"name": "Португалия", "x": 133, "y": 413}, {"name": "Исландия", "x": 49, "y": 127}, {"name": "Венгрия", "x": 348, "y": 344}, {"name": "Австрия", "x": 305, "y": 341}, {"name": "Сербия", "x": 358, "y": 372}, {"name": "Ирландия", "x": 131, "y": 282}, {"name": "Хорватия", "x": 323, "y": 364}, {"name": "Чехия", "x": 315, "y": 318}, {"name": "Молдова", "x": 418, "y": 344}, {"name": "Словакия", "x": 348, "y": 329}, {"name": "Дания", "x": 274, "y": 250}, {"name": "Литва", "x": 381, "y": 258}, {"name": "Латвия", "x": 390, "y": 240}, {"name": "Эстония", "x": 394, "y": 217}, {"name": "Босния и Герцеговина", "x": 334, "y": 373}, {"name": "Швейцария", "x": 259, "y": 348}, {"name": "Северная Македония", "x": 365, "y": 396}, {"name": "Нидерланды", "x": 238, "y": 291}, {"name": "Албания", "x": 352, "y": 400}, {"name": "Словения", "x": 311, "y": 355}, {"name": "Черногория", "x": 346, "y": 386}, {"name": "Бельгия", "x": 231, "y": 310}, {"name": "Косово", "x": 359, "y": 387}, {"name": "Люксембург", "x": 243, "y": 318}];
+
+const MAP_W = 626, MAP_H = 461;
+const NEAR_SEARCH_R = 7; // если клик попал в щель между областями — ищем ответ рядом
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildQuestions(n) {
+  return shuffle(COUNTRIES.map((c, i) => ({ ...c, idx: i + 1 }))).slice(0, n);
+}
+
+let state = {
+  questions: buildQuestions(10),
+  index: 0,
+  score: 0,
+  answers: [],
+  answered: false
+};
+
+// --- Маска стран: грузим один раз в offscreen canvas и читаем пиксели ---
+let maskCtx = null;
+let maskReady = false;
+const maskImg = new Image();
+maskImg.onload = () => {
+  const c = document.createElement('canvas');
+  c.width = MAP_W; c.height = MAP_H;
+  maskCtx = c.getContext('2d', { willReadFrequently: true });
+  maskCtx.drawImage(maskImg, 0, 0);
+  maskReady = true;
+};
+maskImg.src = 'assets/europe-mask.png';
+
+function indexAt(x, y) {
+  if (!maskReady) return 0;
+  x = Math.round(x); y = Math.round(y);
+  if (x < 0 || y < 0 || x >= MAP_W || y >= MAP_H) return 0;
+  return maskCtx.getImageData(x, y, 1, 1).data[0];
+}
+
+function findNearbyIndex(x, y, targetIdx, r) {
+  // проверяем, нет ли нужной страны в паре пикселей от клика (щели между областями)
+  for (let radius = 1; radius <= r; radius++) {
+    for (let dx = -radius; dx <= radius; dx++) {
+      for (let dy = -radius; dy <= radius; dy++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== radius) continue;
+        if (indexAt(x + dx, y + dy) === targetIdx) return true;
+      }
+    }
+  }
+  return false;
+}
+
+const app = document.getElementById('app');
+
+function pinSVG(x, y, cls, animate) {
+  const g = animate ? `pin-anim` : '';
+  return `
+    <g class="pin ${cls}" transform="translate(${x},${y})">
+      <ellipse class="pin-shadow" cx="0" cy="1.5" rx="5" ry="2" />
+      <g class="${g}">
+        <path class="pin-shape" d="M0,0 C-2,-5 -9,-9 -9,-16 C-9,-20.4 -5,-24 0,-24 C5,-24 9,-20.4 9,-16 C9,-9 2,-5 0,0 Z"/>
+        <circle class="pin-dot" cx="0" cy="-16" r="3.4"/>
+      </g>
+    </g>
+  `;
+}
+
+function render() {
+  if (state.index >= state.questions.length) { renderResult(); return; }
+  const q = state.questions[state.index];
+  const pct = Math.round((state.index / state.questions.length) * 100);
+
+  app.innerHTML = `
+    <div class="progress-row">
+      <span>Вопрос ${state.index + 1} из ${state.questions.length}</span>
+      <span>Счёт: ${state.score}</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <p class="question">Где находится <b>${q.name}</b>?</p>
+    <div class="map-box">
+      <svg class="map-svg" id="mapSvg" viewBox="0 0 ${MAP_W} ${MAP_H}" xmlns="http://www.w3.org/2000/svg">
+        <image class="map-img" href="assets/europe-map.png" x="0" y="0" width="${MAP_W}" height="${MAP_H}" preserveAspectRatio="none"></image>
+        <g id="pinsLayer"></g>
+      </svg>
+    </div>
+    <p class="feedback" id="feedback"></p>
+    <button class="skip-btn" id="skipBtn">Не знаю, показать ответ</button>
+    <p class="hint">Нажми на карте в то место, где, по-твоему, расположена страна.</p>
+    <p class="attribution">Учебная карта: <a href="https://www.naturalearthdata.com/">Natural Earth</a>. Границы показаны по исходному набору данных.</p>
+    <button class="next-btn" id="nextBtn">Далее →</button>
+  `;
+
+  const svg = document.getElementById('mapSvg');
+  svg.addEventListener('click', onMapClick);
+  document.getElementById('skipBtn').onclick = () => {
+    if (state.answered) return;
+    handleAnswer(null);
+  };
+  document.getElementById('nextBtn').onclick = () => {
+    state.index++;
+    state.answered = false;
+    render();
+  };
+}
+
+function svgPoint(svg, evt) {
+  const pt = svg.createSVGPoint();
+  pt.x = evt.clientX;
+  pt.y = evt.clientY;
+  const ctm = svg.getScreenCTM().inverse();
+  return pt.matrixTransform(ctm);
+}
+
+function onMapClick(evt) {
+  if (state.answered) return;
+  const svg = document.getElementById('mapSvg');
+  const p = svgPoint(svg, evt);
+  const x = Math.max(0, Math.min(MAP_W, p.x));
+  const y = Math.max(0, Math.min(MAP_H, p.y));
+  handleAnswer({ x, y });
+}
+
+function handleAnswer(guess) {
+  state.answered = true;
+  const q = state.questions[state.index];
+  const svg = document.getElementById('mapSvg');
+  svg.classList.add('locked');
+
+  let isCorrect = false;
+
+  if (guess) {
+    const hitIdx = indexAt(guess.x, guess.y);
+    isCorrect = (hitIdx === q.idx) || findNearbyIndex(guess.x, guess.y, q.idx, NEAR_SEARCH_R);
+  }
+
+  const pinsLayer = document.getElementById('pinsLayer');
+  let pinsHtml = '';
+  if (guess) {
+    if (!isCorrect) {
+      pinsHtml += `<line class="guess-line" x1="${guess.x}" y1="${guess.y}" x2="${q.x}" y2="${q.y}"></line>`;
+    }
+    pinsHtml += pinSVG(guess.x, guess.y, 'pin-guess', true);
+  }
+  if (!isCorrect) {
+    pinsHtml += pinSVG(q.x, q.y, 'pin-correct', true);
+  }
+  pinsLayer.innerHTML = pinsHtml;
+
+  if (isCorrect) state.score++;
+  state.answers.push({ country: q.name, isCorrect, skipped: !guess });
+
+  const feedback = document.getElementById('feedback');
+  feedback.classList.add('show');
+  if (isCorrect) {
+    feedback.classList.add('correct');
+    feedback.innerHTML = `Точно! Это ${q.name} 🎯`;
+  } else {
+    feedback.classList.add('wrong');
+    let sub = '';
+    if (guess) {
+      const dist = Math.hypot(guess.x - q.x, guess.y - q.y);
+      if (dist <= 45) sub = 'Совсем рядом — почти угадал!';
+      else if (dist <= 100) sub = 'Не так уж далеко.';
+      else sub = 'Стоит подучить эту часть карты.';
+    }
+    feedback.innerHTML = `Верный ответ — <b>${q.name}</b>${sub ? `<span class="sub">${sub}</span>` : ''}`;
+  }
+
+  document.getElementById('skipBtn').disabled = true;
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function renderResult() {
+  const total = state.questions.length;
+  const pct = Math.round((state.score / total) * 100);
+  let comment;
+  if (pct === 100) comment = "Отлично ориентируешься по карте Европы! 🏆";
+  else if (pct >= 80) comment = "Очень хороший результат!";
+  else if (pct >= 50) comment = "Неплохо, но карту стоит подучить 🙂";
+  else comment = "Стоит почаще смотреть на карту Европы 📚";
+
+  const reviewHtml = state.answers.map(a => `
+    <div class="review-item">
+      <span class="review-country">${a.country}</span>
+      <span class="review-answer ${a.isCorrect ? 'correct-text' : 'wrong-text'}">
+        ${a.isCorrect ? 'верно' : (a.skipped ? 'пропущено' : 'мимо')}
+      </span>
+    </div>
+  `).join('');
+
+  app.innerHTML = `
+    <div class="result-card">
+      <div class="result-label">Твой результат</div>
+      <div class="result-score">${state.score} / ${total}</div>
+      <p class="result-comment">${comment}</p>
+      <button class="restart-btn" id="restartBtn">Пройти ещё раз</button>
+      <div class="review">${reviewHtml}</div>
+    </div>
+  `;
+
+  document.getElementById('restartBtn').onclick = () => {
+    state = { questions: buildQuestions(10), index: 0, score: 0, answers: [], answered: false };
+    render();
+  };
+}
+
+// ждём загрузки маски, затем стартуем игру
+function boot() {
+  if (!maskReady) { setTimeout(boot, 30); return; }
+  render();
+}
+boot();
+</script>
+</body>
+</html>

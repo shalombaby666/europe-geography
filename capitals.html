@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тест: столицы Европы</title>
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --correct: #16a34a;
+    --correct-bg: #dcfce7;
+    --wrong: #dc2626;
+    --wrong-bg: #fee2e2;
+    --border: #e5e7eb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14161a;
+      --card: #1f232a;
+      --text: #f1f3f5;
+      --muted: #9ca3af;
+      --accent: #60a5fa;
+      --accent-dark: #3b82f6;
+      --correct: #4ade80;
+      --correct-bg: #14361f;
+      --wrong: #f87171;
+      --wrong-bg: #3a1414;
+      --border: #333844;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161a;
+    --card: #1f232a;
+    --text: #f1f3f5;
+    --muted: #9ca3af;
+    --accent: #60a5fa;
+    --accent-dark: #3b82f6;
+    --correct: #4ade80;
+    --correct-bg: #14361f;
+    --wrong: #f87171;
+    --wrong-bg: #3a1414;
+    --border: #333844;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px 16px 60px;
+  }
+  .wrap {
+    width: 100%;
+    max-width: 520px;
+  }
+  h1 {
+    font-size: 1.4rem;
+    margin: 0 0 4px;
+    text-align: center;
+  }
+  .subtitle {
+    color: var(--muted);
+    text-align: center;
+    margin: 0 0 20px;
+    font-size: 0.9rem;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .progress-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .progress-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+  .question {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 0 0 18px;
+    line-height: 1.4;
+  }
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.98rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .option:hover:not(:disabled) {
+    border-color: var(--accent);
+  }
+  .option:disabled {
+    cursor: default;
+  }
+  .option.correct {
+    background: var(--correct-bg);
+    border-color: var(--correct);
+    color: var(--correct);
+    font-weight: 600;
+  }
+  .option.wrong {
+    background: var(--wrong-bg);
+    border-color: var(--wrong);
+    color: var(--wrong);
+    font-weight: 600;
+  }
+  .next-btn {
+    margin-top: 18px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: none;
+  }
+  .next-btn.show { display: block; }
+  .next-btn:active { background: var(--accent-dark); }
+
+  .result-card { text-align: center; }
+  .result-score {
+    font-size: 2.6rem;
+    font-weight: 700;
+    margin: 6px 0;
+    color: var(--accent);
+  }
+  .result-label {
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+  .result-comment {
+    font-size: 1rem;
+    margin-bottom: 20px;
+  }
+  .restart-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .restart-btn:active { background: var(--accent-dark); }
+
+  .review {
+    text-align: left;
+    margin-top: 20px;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+  .review-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .review-item:last-child { border-bottom: none; }
+  .review-country { color: var(--muted); }
+  .review-answer.correct-text { color: var(--correct); font-weight: 600; }
+  .review-answer.wrong-text { color: var(--wrong); font-weight: 600; }
+</style>
+<link rel="icon" href="data:,"><style>body{flex-direction:column;align-items:center;justify-content:flex-start}body>nav{width:100%;margin-bottom:12px}nav a{color:var(--accent);text-decoration:none;padding:9px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px}</style></head>
+<body><nav style="display:flex;justify-content:center;gap:20px;flex-wrap:wrap;padding:14px;font:14px system-ui"><a href="index.html">Страны на карте</a><a href="capitals.html">Столицы Европы</a><a href="https://shalombaby666.github.io/#project=geo">К портфолио</a></nav>
+<div class="wrap">
+  <h1>🗺️ Столицы Европы</h1>
+  <p class="subtitle">Проверь себя — 12 случайных вопросов</p>
+  <div class="card" id="app"></div>
+</div>
+
+<script>
+const DATA = [
+  ["Россия", "Москва"], ["Франция", "Париж"], ["Германия", "Берлин"],
+  ["Италия", "Рим"], ["Испания", "Мадрид"], ["Великобритания", "Лондон"],
+  ["Португалия", "Лиссабон"], ["Нидерланды", "Амстердам"], ["Бельгия", "Брюссель"],
+  ["Швейцария", "Берн"], ["Австрия", "Вена"], ["Польша", "Варшава"],
+  ["Чехия", "Прага"], ["Словакия", "Братислава"], ["Венгрия", "Будапешт"],
+  ["Румыния", "Бухарест"], ["Болгария", "София"], ["Греция", "Афины"],
+  ["Украина", "Киев"], ["Беларусь", "Минск"], ["Литва", "Вильнюс"],
+  ["Латвия", "Рига"], ["Эстония", "Таллин"], ["Финляндия", "Хельсинки"],
+  ["Швеция", "Стокгольм"], ["Норвегия", "Осло"], ["Дания", "Копенгаген"],
+  ["Ирландия", "Дублин"], ["Исландия", "Рейкьявик"], ["Хорватия", "Загреб"],
+  ["Сербия", "Белград"], ["Словения", "Любляна"], ["Босния и Герцеговина", "Сараево"],
+  ["Черногория", "Подгорица"], ["Северная Македония", "Скопье"], ["Албания", "Тирана"],
+  ["Молдова", "Кишинёв"], ["Люксембург", "Люксембург"], ["Мальта", "Валлетта"],
+  ["Кипр", "Никосия"], ["Монако", "Монако"], ["Андорра", "Андорра-ла-Велья"],
+  ["Сан-Марино", "Сан-Марино"], ["Лихтенштейн", "Вадуц"]
+];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildQuestions(n) {
+  const pool = shuffle(DATA).slice(0, n);
+  return pool.map(([country, correct]) => {
+    const wrongPool = shuffle(DATA.filter(d => d[1] !== correct)).slice(0, 3).map(d => d[1]);
+    const options = shuffle([correct, ...wrongPool]);
+    return { country, correct, options };
+  });
+}
+
+let state = {
+  questions: buildQuestions(12),
+  index: 0,
+  score: 0,
+  answers: [],
+  answered: false
+};
+
+const app = document.getElementById('app');
+
+function render() {
+  if (state.index >= state.questions.length) {
+    renderResult();
+    return;
+  }
+  const q = state.questions[state.index];
+  const pct = Math.round((state.index / state.questions.length) * 100);
+
+  app.innerHTML = `
+    <div class="progress-row">
+      <span>Вопрос ${state.index + 1} из ${state.questions.length}</span>
+      <span>Счёт: ${state.score}</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <p class="question">Столица какой страны — <b>${q.country}</b>?</p>
+    <div class="options" id="options"></div>
+    <button class="next-btn" id="nextBtn">Далее →</button>
+  `;
+
+  const optionsEl = document.getElementById('options');
+  q.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(opt, btn);
+    optionsEl.appendChild(btn);
+  });
+
+  document.getElementById('nextBtn').onclick = () => {
+    state.index++;
+    state.answered = false;
+    render();
+  };
+}
+
+function selectAnswer(opt, btn) {
+  if (state.answered) return;
+  state.answered = true;
+  const q = state.questions[state.index];
+  const isCorrect = opt === q.correct;
+  if (isCorrect) state.score++;
+
+  state.answers.push({ country: q.country, correct: q.correct, picked: opt, isCorrect });
+
+  document.querySelectorAll('.option').forEach(o => {
+    o.disabled = true;
+    if (o.textContent === q.correct) o.classList.add('correct');
+    else if (o.textContent === opt) o.classList.add('wrong');
+  });
+
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function renderResult() {
+  const total = state.questions.length;
+  const pct = Math.round((state.score / total) * 100);
+  let comment;
+  if (pct === 100) comment = "Идеально! Ты знаешь столицы Европы наизусть 🏆";
+  else if (pct >= 80) comment = "Отличный результат, почти всё знаешь!";
+  else if (pct >= 50) comment = "Неплохо, но есть куда расти 🙂";
+  else comment = "Стоит освежить географию Европы 📚";
+
+  const reviewHtml = state.answers.map(a => `
+    <div class="review-item">
+      <span class="review-country">${a.country}</span>
+      <span class="review-answer ${a.isCorrect ? 'correct-text' : 'wrong-text'}">
+        ${a.isCorrect ? a.picked : a.picked + ' → ' + a.correct}
+      </span>
+    </div>
+  `).join('');
+
+  app.innerHTML = `
+    <div class="result-card">
+      <div class="result-label">Твой результат</div>
+      <div class="result-score">${state.score} / ${total}</div>
+      <p class="result-comment">${comment}</p>
+      <button class="restart-btn" id="restartBtn">Пройти ещё раз</button>
+      <div class="review">${reviewHtml}</div>
+    </div>
+  `;
+
+  document.getElementById('restartBtn').onclick = () => {
+    state = { questions: buildQuestions(12), index: 0, score: 0, answers: [], answered: false };
+    render();
+  };
+}
+
+render();
+</script>
+</body>
+</html>
